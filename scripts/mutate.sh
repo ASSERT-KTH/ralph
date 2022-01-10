@@ -1,5 +1,5 @@
 
-ITERATIONS=10
+ITERATIONS=1000
 RANDOM=$1
 WASM_MUTATE="./wasm-tools/target/release/wasm-tools mutate"
 
