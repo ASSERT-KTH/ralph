@@ -2,3 +2,7 @@ ralph
 *.h5
 *.csv
 datasets.zip
+by_mutator
+wasm-tools
+wasms.zip
+models.zip
