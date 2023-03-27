@@ -6,6 +6,7 @@ from tensorflow.keras.utils import to_categorical
 import time
 import numpy as np
 import os
+import imaginator
 
 # This function adds the absolute path to the numpy data field. This field
 # is relative to the dataset.csv path, hence, this function will help to concat two different datasets
@@ -34,7 +35,7 @@ def preprocess(data, out):
     features = [f"{x}_{y}" for x in range(100) for y in range(100)]
     features = ",".join(features)
     out.write(f"Name,{features},CLASS\n")
-    with ThreadPoolExecutor(max_workers=32) as executor:
+    with ThreadPoolExecutor(max_workers=12) as executor:
         futures = []
         def load(x):
             img = np.load(x["NYPID"])
@@ -49,12 +50,12 @@ def preprocess(data, out):
             futures.append(future)
             if i % 1000 == 999:
                 print(f"Enqueueing \r{i}/{L} ({100*i/L:0.2f}%) {time.perf_counter() - t0:.2f}s")
-                
+
         # For each future, load them in the same order they were enqueued
         for i, f in enumerate(futures):
             if i % 1000 == 999:
                 print(f"Retrieving \r{i}/{L} ({100*i/L:0.2f}%) {time.perf_counter() - t0:.2f}s")
-                
+
             r = f.result()
 
 def pandarize(folder,out):
@@ -62,6 +63,32 @@ def pandarize(folder,out):
     data = fixpd(data, f"{folder}/" , "NYPID")
 
     preprocess(data, out)
+
+
+# This method returns a collection of the image datas.
+# It reads each NYPID field and call `numpy.load` to load the
+# 100x100 image data for each file
+def preprocess_csv(img):
+    print(img)
+
+    features = [f"{x}_{y}" for x in range(100) for y in range(100)]
+    features = ",".join(features)
+
+    img = imaginator.get_pixels(img)
+    features = {
+        'Name': img,
+        'CLASS': 'BENIGN'
+    }
+    w, h = img.shape
+    for x in range(w):
+        for y in range(h):
+            features[f'{x}_{y}'] = img[x,y]
+
+    frame = pd.DataFrame([features])
+
+
+    return frame
+
 
 
 if __name__ == "__main__":

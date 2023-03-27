@@ -5,17 +5,37 @@ import math
 import numpy as np
 import os
 
+def get_pixels(filename):
+    bytes = open(filename, 'rb').read()
+    # The size of the image is calculated with the sqrt
+    size = len(bytes)
+
+
+    w = int(math.sqrt(size))
+
+    if w > 0:
+        h = int(size/w)
+
+    img = Image.frombuffer('L', (w,h), bytes)
+
+    # resize all images to 100x100 pixels
+    # TODO check this
+    img = img.resize((100, 100))
+
+    return np.asarray(img)
+
+
 # Returns the image or save it to a file
 def encode(filename, save_image_on_disk = "" ):
     bytes = open(filename, 'rb').read()
-    # The size of the image is calculated with the sqrt 
+    # The size of the image is calculated with the sqrt
     size = len(bytes)
-    
+
 
     w = int(math.sqrt(size))
     if w > 0:
         h = int(size/w)
-        
+
 
         img = Image.frombuffer('L', (w,h), bytes)
 

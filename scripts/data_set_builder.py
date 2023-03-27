@@ -71,7 +71,7 @@ def build_csv_inner(filenames, label, size=(100,100), skip=0, OUT_FOLDER="origin
                     print(f"Enqueueing {counter}/{len(filenames)} ({100*counter/len(filenames):.2f})%")
                 try:
                     q.put([ID, f, class_])
-                    
+
 
                 except KeyboardInterrupt:
                     break
@@ -83,13 +83,13 @@ def build_csv_inner(filenames, label, size=(100,100), skip=0, OUT_FOLDER="origin
             ID += 1
             counter += 1
 
-        consumers = [ConsumerThread(name=f'consumer{i}', csv_folder=OUT_FOLDER, size=size) for i in range(16)]
+        consumers = [ConsumerThread(name=f'consumer{i}', csv_folder=OUT_FOLDER, size=size) for i in range(12)]
 
         for c in consumers:
             c.start()
         for c in consumers:
             c.join()
-        
+
         #print(f"open {last} {steps} {first}")
 
 def build_csv(size=(100,100)):
