@@ -26,6 +26,9 @@ from datetime import datetime
 
 import tensorflow
 
+
+
+
 print("Num GPUs Available: ", len(tensorflow.config.experimental.list_physical_devices('GPU')))
 
 
@@ -107,7 +110,7 @@ class MINOS:
     def load(self, model_name="minos.h5"):
         self.model = keras.models.load_model(model_name)
 
-    def fit(self, train_data, test_data, epochs=50, model_name="minos.h5"):
+    def fit(self, train_data, test_data, epochs=50, model_name="minos.h5", test = True):
 
         """
         Trains the classifier
@@ -129,21 +132,19 @@ class MINOS:
         # This check, will avoid to train the model again if the model
         # was already saved in the filesystem. This will help us to prevent
         # the model creating on every exeution of the fit method.
-        if not os.path.exists(model_name):
         # Some counting for info
-            X_train, Y_train = self.preprocess(train_data)
+        X_train, Y_train = self.preprocess(train_data)
+
+
+        if test:
             X_test, Y_test = self.preprocess(test_data)
-
-            # for plotting
             history = self.model.fit(X_train, Y_train, validation_data=(X_test, Y_test), callbacks=[], epochs=epochs)
-
-            self.model.save(model_name)
-
         else:
-            # Otherwise, just load the model from the file system
+            # otherwise use all the data for training
+            history = self.model.fit(X_train, Y_train, callbacks=[], epochs=epochs)
 
+        self.model.save(model_name)
 
-            self.model = keras.models.load_model(model_name)
 
 
 
@@ -188,18 +189,59 @@ def train(args):
     datasetb = pd.read_csv(args.benign)
     datasetm = pd.read_csv(args.malign)
 
-    print(len(datasetb), len(datasetm))
     dataset = pd.concat([datasetb, datasetm], axis=0)
-    # Split the dataset into train and test
-    train, test = split(dataset, 0.2)
+    print(len(datasetb), len(datasetm))
+    ACC = 0
+    TOTAL = 0
+    for index, row in dataset.iterrows():
 
+        print(f"\r{row.Name} for testing                          ")
+    # Split the dataset into train and test
+        train = dataset.drop(index=index)
+        real_test = pd.DataFrame([row])
+
+        # train, test = split(train, testfraction=1.0)
+        # print(train)
+
+        #print(test)
+
+        t = time.time()
+        minos = MINOS()
+        # Do not use data to test, it is to few
+        # Instead we are using a single instance to test
+        minos.fit(train, None, model_name=args.model, epochs=50, test=False)
+        t = time.time()
+        print("Time training", time.time() - t)
+        pr = minos.predict(real_test)
+        print(pr)
+        # This is veeery conservative
+        if pr[row.CLASS][0] > 0.9:
+            ACC += 1
+
+        TOTAL += 1
+
+        sys.stderr.write(f"\rAccuracy {pr[row.CLASS][0]} {ACC}/{TOTAL} = {ACC/TOTAL*100:.2f}%      ")
+
+            #
+
+
+
+def normal_train(args):
+    datasetb = pd.read_csv(args.benign)
+    datasetm = pd.read_csv(args.malign)
+
+    dataset = pd.concat([datasetb, datasetm], axis=0)
+
+    print(len(datasetb), len(datasetm))
+    train, test = split(dataset, 0.8)
     t = time.time()
     minos = MINOS()
+
+    # Do not use data to test, it is to few
+    # Instead we are using a single instance to test
     minos.fit(train, test, model_name=args.model)
     t = time.time()
     print("Time training", time.time() - t)
-
-
 
 
 def predict(args):
@@ -226,12 +268,19 @@ if __name__ == '__main__':
     predict_parser.set_defaults(func=predict)
     predict_parser.add_argument('-i', '--input', type=str, help='Input dataset', required=True)
 
-    train_parser = subparser.add_parser('train')
+    train_parser = subparser.add_parser('train-one-off', help="Train MINOS with a one-off strategy for validation")
     train_parser.add_argument('-b', '--benign', type=str, help='Benign dataset', required=True)
     train_parser.add_argument('-m', '--malign', type=str, help='Malign dataset', required=True)
 
     train_parser.add_argument('--model', type=str, help='Model file to save', default=f'{CURRENT_DIR}/original23.h5')
     train_parser.set_defaults(func=train)
+
+    train_parser = subparser.add_parser('train')
+    train_parser.add_argument('-b', '--benign', type=str, help='Benign dataset', required=True)
+    train_parser.add_argument('-m', '--malign', type=str, help='Malign dataset', required=True)
+
+    train_parser.add_argument('--model', type=str, help='Model file to save', default=f'{CURRENT_DIR}/original23.h5')
+    train_parser.set_defaults(func=normal_train)
 
 
 
