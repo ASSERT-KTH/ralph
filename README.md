@@ -8,7 +8,7 @@
 - `source ralph/bin/activate`
 - `pip install -r requirements.txt`
 
-## Gnerate the datasets from sratch
+## Generate the datasets from sratch
 
 - `source ralph/bin/activate`
 - `cd scripts`
