@@ -143,8 +143,11 @@ class MINOS:
             # otherwise use all the data for training
             history = self.model.fit(X_train, Y_train, callbacks=[], epochs=epochs)
 
-        self.model.save(model_name)
+        self.model.save(f"{model_name}.h5")
 
+        if model_name.endswith(".tf"):
+            import tensorflow as tf
+            tf.saved_model.save(self.model, model_name)
 
 
 

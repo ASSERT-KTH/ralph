@@ -9,7 +9,7 @@ on:
   
 jobs:
   dataset:
-    name: Create dataset
+    name: Creating models
     # This job runs on Linux
     runs-on: ubuntu-20.04
     
@@ -20,24 +20,46 @@ jobs:
           sudo apt-get update && sudo apt-get install -y python3 python3-pip
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-      - name: Create dataset
+
+      - name: Create hd5 model
         run: |
           cd scripts
+          # Make the wasm-tools directory so wasm-tools is not cloned
+          mkdir wasm-tools
           # Change the zenodo url to the one you want to download
           bash generate_datasets_from_scratch.sh "https://zenodo.org/record/5832621/files/wasms.zip"
     
           # Now train the model and save it as hdf5
-          python3 minos.py python3 minos.py train -b datasets/original_benign.csv -m datasets/original_malign.csv --model model.h5
+          python3 minos.py train -b datasets/original_benign.csv -m datasets/original_malign.csv --model model.tf
       
+      - name: Create onnx model
+        run: |
+          pip install -U tf2onnx
+          python3 -m tf2onnx.convert --saved-model scripts/model.tf --output scripts/model.onnx
+      
+
+
       - name: Upload sources to artifacts
         uses: actions/upload-artifact@v3
         with:
-          name: model.h5
-          path: model.h5
+          name: model.onnx
+          path: scripts/model.onnx
+
+      - name: Upload sources to artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: model.tf.h5
+          path: scripts/model.tf.h5
       
       - name: Upload model to release
         if: github.event_name == 'release'
         env:
           GITHUB_TOKEN: ${{ secrets.GH }}
-        run: gh release upload ${{ github.event.release.tag_name }} model.h5
+        run: gh release upload ${{ github.event.release.tag_name }} scripts/model.h5
+         
+      - name: Upload model to release
+        if: github.event_name == 'release'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH }}
+        run: gh release upload ${{ github.event.release.tag_name }} scripts/model.onnx
          
