@@ -21,7 +21,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Create hd5 model
+      - name: Create models
         run: |
           cd scripts
           # Make the wasm-tools directory so wasm-tools is not cloned
@@ -30,13 +30,8 @@ jobs:
           bash generate_datasets_from_scratch.sh "https://zenodo.org/record/5832621/files/wasms.zip"
     
           # Now train the model and save it as hdf5
-          python3 minos.py train -b datasets/original_benign.csv -m datasets/original_malign.csv --model model.tf
-      
-      - name: Create onnx model
-        run: |
-          pip install -U tf2onnx
-          python3 -m tf2onnx.convert --saved-model scripts/model.tf --output scripts/model.onnx
-      
+          python3 minos.py train -b datasets/original_benign.csv -m datasets/original_malign.csv --model model.onnx
+    
 
 
       - name: Upload sources to artifacts
@@ -48,8 +43,8 @@ jobs:
       - name: Upload sources to artifacts
         uses: actions/upload-artifact@v3
         with:
-          name: model.tf.h5
-          path: scripts/model.tf.h5
+          name: model.onnx.h5
+          path: scripts/model.onnx.h5
       
       - name: Upload model to release
         if: github.event_name == 'release'

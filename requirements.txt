@@ -115,3 +115,5 @@ webencodings==0.5.1
 Werkzeug==2.0.2
 widgetsnbextension==3.5.2
 wrapt==1.13.3
+onnxruntime
+tf2onnx

@@ -145,9 +145,10 @@ class MINOS:
 
         self.model.save(f"{model_name}.h5")
 
-        if model_name.endswith(".tf"):
-            import tensorflow as tf
-            tf.saved_model.save(self.model, model_name)
+        if model_name.endswith(".onnx"):
+            import tf2onnx
+            model_proto, _ = tf2onnx.convert.from_keras(self.model,  opset=13, output_path=model_name)
+
 
 
 
