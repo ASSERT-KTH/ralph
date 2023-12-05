@@ -189,6 +189,11 @@ def train(args):
     datasetb = pd.read_csv(args.benign)
     datasetm = pd.read_csv(args.malign)
 
+    # balance the classes
+    minlen = min(len(datasetb), len(datasetm))
+    datasetb = datasetb.sample(minlen)
+    datasetm = datasetm.sample(minlen)
+
     dataset = pd.concat([datasetb, datasetm], axis=0)
     print(len(datasetb), len(datasetm))
     ACC = 0
@@ -226,9 +231,15 @@ def train(args):
 
 
 
-def normal_train(args):
+def normal_train(args, unify_classes=False):
     datasetb = pd.read_csv(args.benign)
     datasetm = pd.read_csv(args.malign)
+    # balance the classes
+    if unify_classes:
+        minlen = min(len(datasetb), len(datasetm))
+        datasetb = datasetb.sample(minlen)
+        datasetm = datasetm.sample(minlen)
+
 
     dataset = pd.concat([datasetb, datasetm], axis=0)
 

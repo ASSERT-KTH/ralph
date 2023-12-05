@@ -2,9 +2,11 @@
 # the datasets
 
 # download the wasms files
+URL=$1
+echo "Downloading wasms from $URL"
 if [ ! -d wasms ]
 then
-    wget -O wasms.zip https://zenodo.org/record/5832621/files/wasms.zip
+    wget -O wasms.zip # https://zenodo.org/record/5832621/files/wasms.zip
     unzip wasms.zip
 fi
 # download and install wasm-mutate
@@ -26,13 +28,15 @@ dir_name2="wasms/malign"
 mkdir -p datasets
 
 # Create the original dataset
-python3 data_set_builder.py wasms/benign datasets/original_benign BENIGN
-python3 pandarize.py datasets/original_benign datasets/original_benign.csv
-python3 data_set_builder.py wasms/malign datasets/original_malign MALIGN
+python3 data_set_builder.py wasms/malign_all_hokon_april datasets/original_malign MALIGN
 python3 pandarize.py datasets/original_malign datasets/original_malign.csv
+python3 data_set_builder.py wasms/benign_all_hokon datasets/original_benign BENIGN
+python3 pandarize.py datasets/original_benign datasets/original_benign.csv
 
+exit
 # Copy all wasms to the total folder
 dir_name="total"
+
 
 mkdir -p $dir_name
 find $dir_name1 -name "*.wasm" -exec bash -c 'cp {} total/benign_$(basename {})' \;
@@ -52,7 +56,7 @@ do
     rm -rf "total$i";
     mkdir -p "total$i";
     find $dir_name -maxdepth 1 -type f -name "*.wasm" | head -n $dir_size | xargs -I{} mv "{}" "total$i"
-    
+
     # Execute wasm-mutate
 
     for w in total$i/*.wasm

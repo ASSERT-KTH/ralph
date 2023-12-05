@@ -1,0 +1,43 @@
+name: Train
+# This workflow is triggered on pushes to the repository.
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+  
+jobs:
+  dataset:
+    name: Create dataset
+    # This job runs on Linux
+    runs-on: ubuntu-20.04
+    
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install dependencies
+        run: |
+          sudo apt-get update && sudo apt-get install -y python3 python3-pip
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: Create dataset
+        run: |
+          cd scripts
+          # Change the zenodo url to the one you want to download
+          bash generate_datasets_from_scratch.sh "https://zenodo.org/record/5832621/files/wasms.zip"
+    
+          # Now train the model and save it as hdf5
+          python3 minos.py python3 minos.py train -b datasets/original_benign.csv -m datasets/original_malign.csv --model model.h5
+      
+      - name: Upload sources to artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: model.h5
+          path: model.h5
+      
+      - name: Upload model to release
+        if: github.event_name == 'release'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH }}
+        run: gh release upload ${{ github.event.release.tag_name }} model.h5
+         
