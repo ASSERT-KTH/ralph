@@ -1,0 +1,3 @@
+[submodule "scripts/getrandom"]
+	path = scripts/getrandom
+	url = git@github.com:Jacarte/getrandom.git

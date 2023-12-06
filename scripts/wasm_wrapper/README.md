@@ -1,0 +1,2 @@
+- Require `cargo install wasm-pack`
+- Build `wasm-pack build --target web --no-pack --no-typescript --out-dir ../`
