@@ -9,6 +9,7 @@
     <form>
         <input type="file" id="file" name="file" />
     </form>
+    <h1 id="infer">Infer: <span id="val"></span></h1>
     <script type="module">
         import model from './model.mjs';
         model({
@@ -45,7 +46,9 @@
                     r.HEAPU8.set(content_bytes, input_ptr); 
                     // write WASM memory calling the set method for the Uint8Array
 
-                    r._infer(input_ptr, content_bytes.length);
+                    let result = r._infer(input_ptr, content_bytes.length);
+                    result = result? "BENIGN": "MALICIOUS";
+                    document.getElementById('val').innerHTML = result;
                 };
                 reader.readAsArrayBuffer(file);
             });
