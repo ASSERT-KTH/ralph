@@ -1,5 +1,5 @@
 use ort::{inputs, GraphOptimizationLevel, Session, SessionOutputs};
-use ndarray::{s, Array, Axis};
+use ndarray::{Array, Array1};
 
 // Embed the model here
 static MODEL: &[u8] = include_bytes!("model.onnx");
@@ -12,14 +12,14 @@ static mut model: Option<ort::Session> = None;
 #[no_mangle]
 pub extern "C" fn init_model(){
     unsafe  {
-        // puts(b"Init model...!\0".as_ptr());
+        println!("Init model...!");
         model = Some(
         ort::Session::builder().unwrap()
             .with_optimization_level(GraphOptimizationLevel::Level3).unwrap()
             // Sadly we cannot add several threads here due to that this will be loaded in a single Wasm thread
             .with_model_from_memory(&MODEL).unwrap()
         );
-        // puts(b"Model ready...!\0".as_ptr());
+        println!("Model ready...!");
     }
 }
 
@@ -56,7 +56,6 @@ pub extern "C" fn print_metadata() {
 pub extern "C" fn infer(wasm_ptr: *const u8, size: usize) -> i32  {
     // Turn the bytes into a vector of 100x100 integers
     let wasm_bytes = unsafe { std::slice::from_raw_parts(wasm_ptr, size) };
-    println!("Inferring for len {}", wasm_bytes.len());
     let sqrt = (wasm_bytes.len() as f64).sqrt() as usize;
     if sqrt == 0 {
         println!("Invalid input len 0");
@@ -65,7 +64,6 @@ pub extern "C" fn infer(wasm_ptr: *const u8, size: usize) -> i32  {
 
     // Create an image from the bytes using sqrt*sqrt size
     // It is grayscale, so we can use a single channel
-    println!("Creating image from the binary {}", sqrt);
     let img = image::GrayImage::from_raw(sqrt as u32, sqrt as u32, wasm_bytes.to_vec()).unwrap();
     // Now scale it to 100x100
     let img = image::imageops::resize(&img, 100, 100, image::imageops::FilterType::Nearest);
@@ -79,18 +77,33 @@ pub extern "C" fn infer(wasm_ptr: *const u8, size: usize) -> i32  {
     }
 
     println!("Feeding input");
+    
     let mut input = Array::zeros((1, 100*100));
     input.assign(&Array::from_shape_vec((1, 100*100), img).unwrap());
 
-    let output = unsafe { model.as_ref().unwrap().run(inputs!["reshape_input" => input.view()].unwrap()).unwrap() };
-	let output = output["dense"].extract_tensor::<f32>().unwrap().view().t().into_owned();
-    let output = output.iter().map(|x| *x as f64).collect::<Vec<f64>>();
+    let input = inputs!["reshape_input" => input.view()].unwrap();
+    let modelref = unsafe { model.as_ref().unwrap() };    
+    let output = modelref.run(input);
 
-    println!("Output: {:?}", output);
-    if output[0] > 0.5 {
-        return 0;
-    } else {
-        return 1;
+    match output {
+        Ok(output) => {
+            let output = output["dense"].extract_tensor::<f32>().unwrap()
+                .view()
+                .t() // transpose
+                .into_owned();
+            
+            let output = output.iter().map(|x| *x as f64).collect::<Vec<f64>>();
+
+            if output[0] > 0.5 {
+                return 0;
+            } else {
+                return 1;
+            }
+        },
+        Err(e) => {
+            println!("Error: {:?}", e);
+            return -1;
+        }
     }
 }
 

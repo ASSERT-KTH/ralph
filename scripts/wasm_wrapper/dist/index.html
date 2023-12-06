@@ -47,6 +47,7 @@
                     // write WASM memory calling the set method for the Uint8Array
 
                     let result = r._infer(input_ptr, content_bytes.length);
+                    r._free(input_ptr);
                     result = result? "BENIGN": "MALICIOUS";
                     document.getElementById('val').innerHTML = result;
                 };
