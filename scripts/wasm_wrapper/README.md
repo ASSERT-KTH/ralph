@@ -1,1 +1,0 @@
-- Build `cargk build --target wasm32-unknown-emscripten --release`
