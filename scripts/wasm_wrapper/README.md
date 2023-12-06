@@ -1,2 +1,1 @@
-- Require `cargo install wasm-pack`
-- Build `wasm-pack build --target web --no-pack --no-typescript --out-dir ../`
+- Build `cargk build --target wasm32-unknown-emscripten --release`

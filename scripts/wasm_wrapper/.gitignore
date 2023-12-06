@@ -1,2 +1,5 @@
 target/
-dist/
+dist/model.js
+dist/model.mjs
+dist/model.wasm
+dist/*.wat

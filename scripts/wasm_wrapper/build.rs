@@ -16,5 +16,8 @@ fn main() {
 
     
     // Set environment variables
-    println!("cargo:rustc-env=EMCC_CFLAGS=-sERROR_ON_UNDEFINED_SYMBOLS=0 --no-entry");
+    // _malloc is needed to save the img data into the Wasm binary.
+    println!("cargo:rustc-env=EMCC_CFLAGS=-sERROR_ON_UNDEFINED_SYMBOLS=0 -sEXPORTED_FUNCTIONS=\"['_malloc', '_infer', '_init_model', '_print_metadata']\" --minify 0 -O0 -sMODULARIZE=1 -o dist/model.mjs ");
+   
+
 }

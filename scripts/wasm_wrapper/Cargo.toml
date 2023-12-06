@@ -10,9 +10,9 @@ description = "Simple wasm wrapper for an ONNX models"
 crate-type = ["cdylib"]
 
 [dependencies]
-wasm-bindgen = "0.2"
 ort = "2.0.0-alpha.2"
-
+image = "0.24.7"
+ndarray = "0.15"
 
 # Add reqwest, tar and gz as a build dependency
 # All of this just to download pin to compile the tracer :|
@@ -21,5 +21,5 @@ version = "*"
 [build-dependencies.tar]
 version = "*"
 
-[target.wasm32-unknown-emscripten]
-rustflags = ["--no-entry"]
+[dev-dependencies]
+wasm-bindgen-test = "0.3.0"
