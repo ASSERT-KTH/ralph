@@ -29,5 +29,5 @@
 
 # Repo structure
 - `.gihub`: Contains the CI jobs to train and save the models in the artifact storage
-- `scripts`: MINOS implementation(`minos.py`), the scripts to turn Wasm binaries into 100x100 grayscale images, and the (TODO) wasm_wrapper to make browser client inference with the already trained model.
+- `scripts`: MINOS implementation(`minos.py`), the scripts to turn Wasm binaries into 100x100 grayscale images. [Here](https://www.jacarte.me/blog/2023/ONNx/) you might find a wasm_wrapper to make browser client inference with the already trained model.
 - `scripts/wasm_wrapper`: TODO 
